@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Fit 運動日誌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   🎨 配色設定區：想改顏色，只要改這一區的色碼（#開頭那串）就好
+   每個區域都有自己的一組變數，互不影響。
+   ===================================================================== */
+:root{
+  /* ---------- 1. 整個畫面的底色（機身、螢幕、網頁背景）---------- */
+  --page-bg:#33071E;        /* 網頁最外面的背景 */
+  --shell:#612042;          /* 機身顏色 */
+  --shell-dark:#C791AD;     /* 機身陰影 */
+  --shell-light:#FAD9EA;    /* 機身亮邊 */
+  --bezel:#555a70;          /* 螢幕外框 */
+  --bezel-text:#b9bcd0;     /* 外框上的小字 */
+  --led:#e5575b;            /* 電源燈 */
+  --brand-text:#EBEBEB;     /* 機身下方 PIXEL FIT 字樣 */
+  --screen-bg:#F2D3D0;      /* 螢幕底色 */
+  --screen-border:#193441;  /* 螢幕邊框 */
+  --screen-text:#612042;    /* 螢幕上的標題文字 */
+  --scanline:rgba(15,56,15,.07); /* 掃描線（想關掉就改成 transparent）*/
+
+  /* ---------- 2. 進度條 ---------- */
+  --pg-panel-bg:#F2D3D0;    /* 進度條區塊底色 */
+  --pg-border:#193441;      /* 邊框 */
+  --pg-text:#612042;        /* 文字 */
+  --pg-track-bg:#D4D3D1;    /* 20 格的外框底色 */
+  --pg-empty:#EBEBEB;       /* 還沒達成的格子 */
+  --pg-fill:#FFD659;        /* 已達成的格子 */
+
+  /* ---------- 3. 日曆 ---------- */
+  --cal-panel-bg:#F2D3D0;   /* 日曆區塊底色 */
+  --cal-border:#193441;     /* 區塊與日期格的邊框 */
+  --cal-text:#612042;       /* 日期數字、星期、運動圖示 */
+  --cal-cell-bg:#D4D3D1;    /* 沒有紀錄的日期格 */
+  --cal-hover:#193441;      /* 滑鼠移到日期格的框線 */
+  --cal-today:#193441;      /* 今天的閃爍框 */
+  /* 心情顏色（日期格底色、表情都用這組）*/
+  --m1:#e5575b;             /* 低落 */
+  --m2:#a78bdc;             /* 疲憊 */
+  --m3:#5dade2;             /* 普通 */
+  --m4:#ff9f43;             /* 開心 */
+  --m5:#ffd23f;             /* 超棒 */
+  --face-line:#0f380f;      /* 表情的眼睛、嘴巴與外框 */
+  --m-mixed:#093C5D;        /* 多種心情（同一天心情不同時）的日期格底色 */
+  --m-mixed-text:#F6F3EB;   /* 多種心情日期格上的日期數字與運動圖示 */
+
+  /* ---------- 4. 右邊的統計資訊 ---------- */
+  --st-panel-bg:#F2D3D0;    /* 統計區塊底色 */
+  --st-border:#193441;      /* 邊框 */
+  --st-text:#612042;        /* 文字、運動圖示 */
+  --st-box-bg:#093C5D;      /* 「本月總運動時間」方框底色 */
+  --st-box-text:#F6F3EB;    /* 「本月總運動時間」方框裡的文字 */
+  --st-bar-track:#D4D3D1;   /* 長條圖的底槽 */
+  --st-bar-fill:#093C5D;    /* 長條圖的填色 */
+
+  /* ---------- 5. 按鈕 ---------- */
+  /* 5-1 共用設定：不另外指定的按鈕都會用這組 */
+  --btn-bg:#FAD9EA;
+  --btn-text:#612042;
+  --btn-border:#193441;
+  --btn-shadow:#193441;     /* 按鈕的立體陰影 */
+  --btn-hover-bg:#193441;   /* 滑鼠移上去的底色 */
+  --btn-hover-text:#D4D3D1; /* 滑鼠移上去的文字 */
+  /* 5-2 每個按鈕各自的顏色（預設跟共用設定相同，想單獨改哪顆就改哪顆）*/
+  --btn-nav-bg:var(--btn-bg);    --btn-nav-text:var(--btn-text);    /* ◀ ▶ 切換月份 */
+  --btn-today-bg:#612042;  --btn-today-text:#EBEBEB;  /* TODAY 回到本月 */
+  --btn-demo-bg:#612042;   --btn-demo-text:#EBEBEB;   /* DEMO 載入範例 */
+  --btn-clear-bg:#612042;  --btn-clear-text:#EBEBEB;  /* CLEAR 清空本月 */
+  --btn-sound-bg:var(--btn-bg);  --btn-sound-text:var(--btn-text);  /* SOUND 音效開關 */
+  --btn-add-bg:var(--btn-bg);    --btn-add-text:var(--btn-text);    /* ADD 新增／UPDATE 更新／YES 確定 */
+  --btn-sub-bg:var(--btn-bg);    --btn-sub-text:var(--btn-text);    /* 取消編輯／NO 取消 */
+  --btn-mini-bg:var(--btn-bg);   --btn-mini-text:var(--btn-text);   /* ✕ 關閉、編輯、刪除 */
+  /* 5-3 記錄視窗裡「運動項目」「心情」的選擇按鈕 */
+  --pick-bg:#D5DED9;
+  --pick-text:#612042;
+  --pick-hover:#EDB1A3;
+  --pick-on-bg:#3E606F;     /* 被選中時的底色 */
+  --pick-on-text:#9bbc0f;   /* 被選中時的文字與圖示 */
+
+  /* ---------- 6. 彈出視窗（記錄視窗、確認視窗、升級訊息）---------- */
+  --dlg-overlay:rgba(235,235,235,.7); /* 視窗後面的暗幕 */
+  --dlg-bg:#F2D3D0;
+  --dlg-border:#193441;
+  --dlg-text:#612042;
+  --dlg-list-bg:#D5DED9;    /* 「當天紀錄」清單底色 */
+  --dlg-list-line:#306230;  /* 清單分隔線 */
+  --dlg-editing-bg:#D5DED9; /* 正在編輯的那一筆 */
+  --dlg-input-bg:#D5DED9;   /* 分鐘數輸入框 */
+  --dlg-error:#7a1f1f;      /* 錯誤提示文字 */
+  /* 升級訊息裡的像素小人 */
+  --hero-hair:#4a2f1d;      /* 頭髮 */
+  --hero-skin:#f2c9a0;      /* 皮膚 */
+  --hero-shirt:#5dade2;     /* 上衣 */
+  --hero-shorts:#306230;    /* 裙子 */
+  --hero-ribbon:#e5575b;    /* 頭上的蝴蝶結 */
+  --hero-dark:#0f380f;      /* 眼睛、嘴巴、鞋子 */
+  --hero-star:#ffd23f;      /* 慶祝時閃爍的小星星 */
+
+  /* ---------- 字體（一般不用動）---------- */
+  --px:'Press Start 2P', monospace;
+  --body:'DotGothic16','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
+}
+
+/* =====================================================================
+   以下是版面與樣式（顏色都已改為引用上面的變數，一般不用動）
+   ===================================================================== */
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0}
+body{
+  background:var(--page-bg);
+  min-height:100vh;
+  display:flex;justify-content:center;align-items:flex-start;
+  padding:20px 12px 40px;
+  font-family:var(--body);
+  color:var(--screen-text);
+  font-size:15px;
+}
+button{font-family:inherit;color:inherit}
+
+/* ===== 機身 ===== */
+.device{
+  width:100%;max-width:1000px;
+  background:var(--shell);
+  border-radius:14px 14px 56px 14px;
+  padding:20px 20px 26px;
+  box-shadow:inset -4px -4px 0 var(--shell-dark), inset 4px 4px 0 var(--shell-light), 0 8px 0 #12101a;
+}
+.bezel{background:var(--bezel);border-radius:10px 10px 32px 10px;padding:10px 14px 16px}
+.bezel-top{display:flex;align-items:center;gap:8px;color:var(--bezel-text);font:8px/1 var(--px);margin-bottom:8px;letter-spacing:1px}
+.led{width:8px;height:8px;border-radius:50%;background:var(--led);box-shadow:0 0 6px var(--led);animation:led 2s steps(2) infinite}
+@keyframes led{50%{opacity:.55}}
+.screen{position:relative;background:var(--screen-bg);color:var(--screen-text);border:4px solid var(--screen-border);padding:12px}
+.screen::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);
+}
+.brand{margin:14px 4px 0;font:italic 700 14px var(--px);color:var(--brand-text);letter-spacing:1px}
+
+/* ===== 標題 ===== */
+.titlebar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
+.titlebar h1{margin:0;font:16px var(--px);letter-spacing:1px}
+.titlebar .sub{font-size:14px}
+
+/* ===== 區塊（各區顏色分開）===== */
+.panel{padding:10px;border-width:3px;border-style:solid}
+.progress{background:var(--pg-panel-bg);border-color:var(--pg-border);color:var(--pg-text)}
+.cal{background:var(--cal-panel-bg);border-color:var(--cal-border);color:var(--cal-text)}
+.stats{background:var(--st-panel-bg);border-color:var(--st-border);color:var(--st-text)}
+
+/* ===== 按鈕 ===== */
+.btn{
+  font:10px var(--px);
+  background:var(--b-bg,var(--btn-bg));color:var(--b-text,var(--btn-text));
+  border:3px solid var(--btn-border);padding:8px 10px;cursor:pointer;
+  box-shadow:3px 3px 0 var(--btn-shadow);
+}
+.btn:hover{background:var(--btn-hover-bg);color:var(--btn-hover-text)}
+.btn:active{transform:translate(3px,3px);box-shadow:none}
+.btn:focus-visible,.mini:focus-visible{outline:3px dashed var(--btn-border);outline-offset:2px}
+.btn.cjk{font:15px var(--body);padding:7px 10px}
+#prevM,#nextM{--b-bg:var(--btn-nav-bg);--b-text:var(--btn-nav-text)}
+#todayBtn{--b-bg:var(--btn-today-bg);--b-text:var(--btn-today-text)}
+#demoBtn{--b-bg:var(--btn-demo-bg);--b-text:var(--btn-demo-text)}
+#clearBtn{--b-bg:var(--btn-clear-bg);--b-text:var(--btn-clear-text)}
+#soundBtn{--b-bg:var(--btn-sound-bg);--b-text:var(--btn-sound-text)}
+#submitBtn,#askYes{--b-bg:var(--btn-add-bg);--b-text:var(--btn-add-text)}
+#cancelEdit,#askNo{--b-bg:var(--btn-sub-bg);--b-text:var(--btn-sub-text)}
+.mini{
+  font:14px var(--body);background:var(--btn-mini-bg);color:var(--btn-mini-text);
+  border:2px solid var(--btn-border);padding:3px 7px;cursor:pointer;
+}
+.mini:hover{background:var(--btn-hover-bg);color:var(--btn-hover-text)}
+
+/* ===== 進度條 ===== */
+.progress{margin-bottom:10px}
+.pg-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.pg-top .lv{font:11px var(--px)}
+.pg-top .cnt{font:11px var(--px)}
+.bar{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;border:3px solid var(--pg-border);padding:3px;background:var(--pg-track-bg)}
+.bar i{display:block;height:16px;background:var(--pg-empty)}
+.bar i:nth-child(5n){margin-right:3px}
+.bar i:nth-child(20){margin-right:0}
+.bar i.on{background:var(--pg-fill);animation:pop .3s steps(3)}
+@keyframes pop{0%{transform:scaleY(1.9)}100%{transform:scaleY(1)}}
+.marks{display:grid;grid-template-columns:repeat(4,1fr);font:8px var(--px);margin-top:5px;text-align:right;padding-right:2px}
+.pg-hint{margin:6px 0 0;font-size:14px}
+
+/* ===== 版面 ===== */
+.layout{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:860px){.layout{grid-template-columns:1.5fr 1fr}}
+
+/* ===== 日曆 ===== */
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px}
+.cal-title{flex:1;text-align:center}
+.cal-title b{display:block;font:12px var(--px)}
+.cal-title span{font-size:13px}
+.week,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.week span{text-align:center;font:8px var(--px);padding:4px 0}
+.blank{min-height:58px}
+.day{
+  position:relative;min-height:58px;background:var(--cal-cell-bg);color:var(--cal-text);
+  border:2px solid var(--cal-border);
+  padding:3px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  cursor:pointer;text-align:left;
+}
+.day:hover{box-shadow:inset 0 0 0 3px var(--cal-hover)}
+.day:focus-visible{outline:3px dashed var(--cal-border);outline-offset:2px}
+.day.has{background:var(--mood)}
+.day.mixed{color:var(--m-mixed-text)}
+.day.mixed:hover{box-shadow:inset 0 0 0 3px var(--m-mixed-text)}
+.day.future{opacity:.6}
+.day:disabled{cursor:not-allowed;opacity:.45}
+.day:disabled:hover{box-shadow:none}
+.day .dnum{font:9px var(--px)}
+.icons{display:flex;flex-wrap:wrap;gap:1px;align-items:center}
+.icons svg{width:14px;height:14px}
+.icons .more{font:8px var(--px)}
+.day.today{outline:3px dashed var(--cal-today);outline-offset:1px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{outline-color:transparent}}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:3px}
+.legend .tip{width:100%;font-size:13px}
+.legend .sw{display:inline-block;width:16px;height:16px;background:var(--m-mixed);border:2px solid var(--cal-border)}
+@media (max-width:480px){
+  .day,.blank{min-height:50px}
+  .icons svg{width:11px;height:11px}
+  .device{padding:12px 10px 20px}
+  .bezel{padding:8px 8px 12px}
+  .screen{padding:8px}
+}
+
+/* ===== 像素圖示（運動圖示跟著所在區塊的文字色；表情用 --face-line）===== */
+svg .fx{fill:currentColor}
+svg .fk{fill:var(--face-line)}
+svg .fo{fill:var(--face,var(--face-line))}
+.face svg{
+  filter:drop-shadow(1px 0 0 var(--face-line)) drop-shadow(-1px 0 0 var(--face-line)) drop-shadow(0 1px 0 var(--face-line)) drop-shadow(0 -1px 0 var(--face-line));
+}
+.face{display:inline-flex}
+.legend .face svg,.entry .face svg{width:18px;height:18px}
+
+/* ===== 統計 ===== */
+.stats h2{margin:0 0 8px;font:11px var(--px)}
+.total{border:3px solid var(--st-border);background:var(--st-box-bg);color:var(--st-box-text);padding:8px;margin-bottom:10px}
+.total .big{font:15px var(--px);margin:2px 0 6px;line-height:1.4}
+.total .small{font-size:14px}
+.srow{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.srow svg{width:24px;height:24px}
+.srow.zero{opacity:.5}
+.sline{display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px;gap:6px}
+.sline span:last-child{font-family:var(--px);font-size:9px;white-space:nowrap;align-self:center}
+.sbar{height:14px;border:3px solid var(--st-border);background:var(--st-bar-track)}
+.sbar i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--st-bar-fill) 0 6px,transparent 6px 8px);transition:width .35s steps(6)}
+.nodata{font-size:14px;text-align:center;margin:6px 0 10px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;position:relative;z-index:1}
+
+/* ===== 彈出視窗 ===== */
+.overlay{position:fixed;inset:0;background:var(--dlg-overlay);display:flex;align-items:center;justify-content:center;padding:12px;z-index:10}
+.dialog{
+  width:100%;max-width:460px;max-height:92vh;overflow:auto;
+  background:var(--dlg-bg);color:var(--dlg-text);
+  border:4px solid var(--dlg-border);box-shadow:6px 6px 0 var(--dlg-border);padding:12px;
+}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.dlg-head h2{margin:0;font:11px/1.6 var(--px)}
+.dlg-sec{font:9px var(--px);margin:0 0 6px;padding:0}
+fieldset{border:0;padding:0;margin:0 0 12px}
+legend{font:9px var(--px);margin-bottom:6px;padding:0}
+#entryList{list-style:none;margin:0 0 12px;padding:0;border:3px solid var(--dlg-border);background:var(--dlg-list-bg)}
+.entry{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:2px dashed var(--dlg-list-line)}
+.entry:last-child{border-bottom:0}
+.entry{flex-wrap:wrap}
+.entry .note{flex-basis:100%;font-size:14px;line-height:1.5;padding:2px 0 0 28px;word-break:break-all}
+#note{display:block;width:100%;font:15px/1.5 var(--body);background:var(--dlg-input-bg);color:var(--dlg-text);border:3px solid var(--dlg-border);padding:8px 6px;resize:none}
+#note:focus{outline:3px dashed var(--dlg-border);outline-offset:2px}
+.notecount{text-align:right;font:9px var(--px);margin-top:4px}
+.entry svg.sp{width:20px;height:20px}
+.entry .txt{flex:1;font-size:15px}
+.entry.editing{background:var(--dlg-editing-bg)}
+.entry.empty{justify-content:center;font-size:14px}
+.dlg-note{font-size:14px;line-height:1.6;margin:0 0 4px}
+.pick{display:grid;gap:6px}
+.pick.sports{grid-template-columns:repeat(3,1fr)}
+.pick.moods{grid-template-columns:repeat(5,1fr)}
+.pick button{
+  background:var(--pick-bg);color:var(--pick-text);
+  border:3px solid var(--dlg-border);padding:6px 2px;font:13px var(--body);
+  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
+}
+.pick button svg{width:26px;height:26px}
+.pick.moods button svg{width:24px;height:24px}
+.pick button:hover{background:var(--pick-hover)}
+.pick button[aria-pressed="true"]{background:var(--pick-on-bg);color:var(--pick-on-text)}
+.pick button:focus-visible{outline:3px dashed var(--dlg-border);outline-offset:2px}
+.minrow{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:15px}
+.minrow .lab{font:9px var(--px)}
+input[type=number]{
+  width:110px;font:13px var(--px);background:var(--dlg-input-bg);color:var(--dlg-text);
+  border:3px solid var(--dlg-border);padding:8px 6px;
+}
+input[type=number]:focus{outline:3px dashed var(--dlg-border);outline-offset:2px}
+#formMsg{min-height:1.4em;margin:0 0 8px;font-size:14px;color:var(--dlg-error);font-weight:bold}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap}
+.overlay.ask{z-index:30}
+.overlay.name{z-index:40}
+.overlay.sportdlg{z-index:25}
+.pick.sports button.add{border-style:dashed;justify-content:center}
+.pick.sports button.add .plus{font:20px var(--px);line-height:26px}
+.pick.icons{grid-template-columns:repeat(4,1fr);margin-bottom:12px}
+.pick.icons button{padding:8px 2px}
+#customList{list-style:none;margin:0 0 12px;padding:0;border:3px solid var(--dlg-border);background:var(--dlg-list-bg)}
+#customList li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:2px dashed var(--dlg-list-line);font-size:15px}
+#customList li:last-child{border-bottom:0}
+#customList li.empty{justify-content:center;font-size:14px}
+#customList li .txt{flex:1;word-break:break-all}
+#customList svg{width:20px;height:20px}
+#sportMsg{min-height:1.4em;margin:0 0 8px;font-size:14px;color:var(--dlg-error);font-weight:bold}
+.name-title{font:11px/1.7 var(--px);margin:0 0 6px}
+.name-sub{font-size:15px;margin:0 0 12px}
+input[type=text].nameInput{
+  width:100%;box-sizing:border-box;font:14px var(--px);background:var(--dlg-input-bg);color:var(--dlg-text);
+  border:3px solid var(--dlg-border);padding:10px 8px;margin-bottom:6px;
+}
+input[type=text].nameInput:focus{outline:3px dashed var(--dlg-border);outline-offset:2px}
+#nameMsg{min-height:1.4em;margin:0 0 8px;font-size:14px;color:var(--dlg-error);font-weight:bold}
+.titlebar h1{text-transform:uppercase;overflow-wrap:anywhere}
+.titlebar h1 button{all:unset;cursor:pointer;display:inline}
+.titlebar h1 button:hover{text-decoration:underline}
+.titlebar h1 button:focus-visible{outline:3px dashed var(--screen-text);outline-offset:3px}
+#askMsg{font-size:16px;line-height:1.6;margin:0 0 14px}
+
+/* ===== 升級訊息 ===== */
+.overlay.lvl{align-items:flex-end;z-index:20}
+.textbox{
+  display:flex;align-items:flex-end;gap:14px;
+  width:min(560px,94%);margin:0 auto 24px;text-align:left;cursor:pointer;
+  background:var(--dlg-bg);color:var(--dlg-text);border:5px solid var(--dlg-border);
+  box-shadow:0 0 0 4px var(--dlg-bg),0 0 0 8px var(--dlg-border);
+  padding:14px 16px 24px;position:relative;
+}
+.tb-body{flex:1;min-width:0;display:block}
+.textbox .t{display:block;font:11px/1.7 var(--px);margin-bottom:10px}
+.textbox .m{display:block;font-size:18px;line-height:1.6;min-height:3.4em}
+.textbox .arrow{position:absolute;right:14px;bottom:8px;font:12px var(--px);animation:arrow .8s steps(2) infinite;visibility:hidden}
+.textbox.done .arrow{visibility:visible}
+@keyframes arrow{50%{opacity:0}}
+
+/* ===== 升級訊息裡的像素小人（開合跳）===== */
+.hero{position:relative;flex:none;width:72px;height:78px;margin-bottom:-6px}
+.hero-body{position:absolute;inset:0;animation:hop .8s step-end infinite}
+.hero svg.hf{position:absolute;left:0;top:0;width:100%;height:100%}
+.hero .fa{animation:heroA .8s step-end infinite}
+.hero .fb{animation:heroB .8s step-end infinite}
+.hh{fill:var(--hero-hair)} .hs{fill:var(--hero-skin)} .ht{fill:var(--hero-shirt)}
+.hp{fill:var(--hero-shorts)} .hk{fill:var(--hero-dark)} .hr{fill:var(--hero-ribbon)}
+@keyframes heroA{0%{opacity:1}50%{opacity:0}}
+@keyframes heroB{0%{opacity:0}50%{opacity:1}}
+@keyframes hop{0%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes hop2{0%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+/* 打字完成後：動作變快、跳更高、星星開始閃 */
+.textbox.done .hero-body{animation-name:hop2;animation-duration:.5s}
+.textbox.done .hero .fa,.textbox.done .hero .fb{animation-duration:.5s}
+.star{position:absolute;width:15px;height:15px;opacity:0}
+.star rect{fill:var(--hero-star)}
+.star.s1{left:-8px;top:8px}
+.star.s2{right:-10px;top:-2px}
+.star.s3{right:-6px;top:38px}
+.star.s4{left:-6px;top:44px}
+.textbox.done .star{animation:twinkle .6s step-end infinite}
+.textbox.done .star.s2{animation-delay:.15s}
+.textbox.done .star.s3{animation-delay:.3s}
+.textbox.done .star.s4{animation-delay:.45s}
+@keyframes twinkle{0%{opacity:1}50%{opacity:.15}}
+@media (max-width:480px){
+  .hero{width:60px;height:65px}
+  .textbox{gap:10px;padding:12px 12px 22px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .hero .fb{display:none}
+  .textbox.done .star{opacity:1}
+  .textbox .arrow{opacity:1}
+}
+</style>
+</head>
+<body>
+<main class="device">
+  <div class="bezel">
+    <div class="bezel-top"><span class="led"></span><span>DOT MATRIX · EXERCISE LOG</span></div>
+    <div class="screen">
+      <header class="titlebar">
+        <h1><button type="button" id="nameBtn" title="點一下可以改名字">PLAYER</button></h1>
+        <span class="sub">運動日誌 ▸ EXERCISE LOG</span>
+      </header>
+
+      <!-- 進度條：本月運動天數 -->
+      <section class="panel progress" aria-label="本月運動天數進度">
+        <div class="pg-top">
+          <span class="lv" id="lvName"></span>
+          <span class="cnt" id="dayCount"></span>
+        </div>
+        <div class="bar" id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="20"></div>
+        <div class="marks"><span>5</span><span>10</span><span>15</span><span>20</span></div>
+        <p class="pg-hint" id="pgHint"></p>
+      </section>
+
+      <div class="layout">
+        <!-- 日曆 -->
+        <section class="panel cal" aria-label="月曆">
+          <div class="cal-head">
+            <button class="btn" id="prevM" aria-label="上個月">◀</button>
+            <div class="cal-title"><b id="monthEn"></b><span id="monthZh"></span></div>
+            <button class="btn" id="nextM" aria-label="下個月">▶</button>
+          </div>
+          <div class="week" aria-hidden="true"><span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span></div>
+          <div class="grid" id="calGrid"></div>
+          <div class="legend" id="legend"></div>
+        </section>
+
+        <!-- 統計 -->
+        <section class="panel stats" aria-label="本月統計">
+          <h2>MONTH STATS 本月統計</h2>
+          <div class="total">
+            <div class="small">本月總運動時間</div>
+            <div class="big" id="totalTime">0 分</div>
+            <div class="small" id="totalSub"></div>
+          </div>
+          <div id="sportStats"></div>
+          <div class="nodata" id="noData" hidden>本月還沒有紀錄，點日曆上的日期開始吧！</div>
+        </section>
+      </div>
+
+      <div class="tools">
+        <button class="btn" id="todayBtn">TODAY 回到本月</button>
+        <button class="btn" id="demoBtn">DEMO 載入範例</button>
+        <button class="btn" id="clearBtn">CLEAR 清空本月</button>
+        <button class="btn" id="soundBtn" type="button" aria-pressed="true" hidden>SOUND 音效：開</button><!-- 音效開關已隱藏；想讓它顯示，把這一行的 hidden 刪掉即可 -->
+      </div>
+    </div>
+  </div>
+  <div class="brand">PIXEL FIT</div>
+</main>
+
+<!-- 記錄視窗 -->
+<div class="overlay" id="modal" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="dlg-head">
+      <h2 id="mTitle"></h2>
+      <button class="mini" id="mClose" aria-label="關閉">✕</button>
+    </div>
+    <p class="dlg-sec">TODAY'S LOG 當天紀錄</p>
+    <ul id="entryList"></ul>
+    <p class="dlg-note" id="futureNote" hidden>這是還沒到的日期，不能新增紀錄。如果這天有舊資料，可以在這裡刪除。</p>
+    <div id="entryForm">
+      <p class="dlg-sec" id="formTitle">NEW ENTRY 新增一筆</p>
+      <fieldset>
+        <legend>SPORT 運動項目</legend>
+        <div class="pick sports" id="sportPick"></div>
+      </fieldset>
+      <div class="minrow">
+        <label class="lab" for="minutes">TIME 時間</label>
+        <input id="minutes" type="number" inputmode="numeric" min="10" max="180" step="1" placeholder="30">
+        <span>分鐘</span>
+      </div>
+      <fieldset>
+        <legend>MOOD 心情</legend>
+        <div class="pick moods" id="moodPick"></div>
+      </fieldset>
+      <fieldset>
+        <legend>NOTE 心情留言（選填，最多 50 字）</legend>
+        <textarea id="note" rows="2" maxlength="50" placeholder="寫下今天運動後的心情或感想…"></textarea>
+        <div class="notecount" id="noteCount" aria-live="off">0/50</div>
+      </fieldset>
+      <p id="formMsg" role="alert"></p>
+      <div class="form-actions">
+        <button class="btn" type="button" id="submitBtn">＋ ADD 新增</button>
+        <button class="btn cjk" type="button" id="cancelEdit" hidden>取消編輯</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增／管理自訂運動項目 -->
+<div class="overlay sportdlg" id="sportOverlay" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="sportTitle">
+    <div class="dlg-head">
+      <h2 id="sportTitle">ADD SPORT 新增運動項目</h2>
+      <button class="mini" id="sportClose" type="button" aria-label="關閉">✕</button>
+    </div>
+    <fieldset>
+      <legend>NAME 名稱（最多 8 個字）</legend>
+      <input type="text" class="nameInput" id="sportName" maxlength="8" autocomplete="off" placeholder="例如：游泳">
+    </fieldset>
+    <fieldset>
+      <legend>ICON 圖示</legend>
+      <div class="pick icons" id="iconPick"></div>
+    </fieldset>
+    <p id="sportMsg" role="alert"></p>
+    <div class="form-actions">
+      <button class="btn" type="button" id="sportAdd">＋ ADD 新增</button>
+    </div>
+    <p class="dlg-sec" style="margin-top:14px">MY SPORTS 我新增的項目</p>
+    <ul id="customList"></ul>
+  </div>
+</div>
+
+<!-- 確認視窗（取代瀏覽器內建的 confirm，預覽環境也能用） -->
+<div class="overlay ask" id="askOverlay" hidden>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="askMsg">
+    <p id="askMsg"></p>
+    <div class="form-actions">
+      <button class="btn" type="button" id="askYes">YES 確定</button>
+      <button class="btn" type="button" id="askNo">NO 取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 輸入名字視窗（第一次打開網頁時出現；點左上角的名字可以再改）-->
+<div class="overlay name" id="nameOverlay" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+    <p class="name-title" id="nameTitle">WELCOME!</p>
+    <p class="name-sub">歡迎！請輸入你的名字（最多 20 個字）</p>
+    <input type="text" class="nameInput" id="nameInput" maxlength="20" autocomplete="off" placeholder="YOUR NAME">
+    <p id="nameMsg" role="alert"></p>
+    <div class="form-actions">
+      <button class="btn" type="button" id="nameOk">START 開始</button>
+      <button class="btn" type="button" id="nameCancel" hidden>CANCEL 取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 升級訊息 -->
+<div class="overlay lvl" id="lvlOverlay" hidden>
+  <button class="textbox" id="lvlBox" type="button">
+    <span class="hero" id="hero" aria-hidden="true"></span>
+    <span class="tb-body">
+      <span class="t" id="lvlTitle"></span>
+      <span class="m" id="lvlText"></span>
+    </span>
+    <span class="arrow">▼</span>
+  </button>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= 設定資料 ================= */
+const pad = n => String(n).padStart(2, '0');
+const $ = s => document.querySelector(s);
+
+// 8x8 像素圖：x = 深色線條，o = 臉的底色（會依心情變色）
+const SPORTS = [
+  { id:'run',    name:'跑步',   icon:[
+    '...xx...','...xx...','..xxxx..','.x.xx.x.','...xx...','..x..x..','.x....x.','x......x'] },
+  { id:'gym',    name:'健身',   icon:[
+    '........','xx....xx','xx....xx','xxxxxxxx','xxxxxxxx','xx....xx','xx....xx','........'] },
+  { id:'yoga',   name:'瑜珈',   icon:[
+    '...xx...','...xx...','.x.xx.x.','..xxxx..','...xx...','.xxxxxx.','xx....xx','........'] },
+  { id:'bike',   name:'自行車', icon:[
+    '........','....xxx.','...xx...','.xxxxx..','xxx..xxx','x.x..x.x','xxx..xxx','........'] },
+  { id:'badm',   name:'羽球',   icon:[
+    'x.x..x.x','x.x..x.x','.xxxxxx.','.xxxxxx.','..xxxx..','..xxxx..','...xx...','..xxxx..'] },
+  { id:'tennis', name:'網球',   icon:[
+    '..xxxx..','.x.xx.x.','x.x..x.x','x.x..x.x','x.x..x.x','x.x..x.x','.x.xx.x.','..xxxx..'] }
+];
+const MOODS = [
+  { v:1, name:'低落', face:[
+    '..oooo..','.oooooo.','ooxooxoo','ooxooxoo','oooooooo','ooxxxxoo','.oxooxo.','..oooo..'] },
+  { v:2, name:'疲憊', face:[
+    '..oooo..','.oooooo.','oxxooxxo','oooooooo','oooooooo','ooxxxxoo','.oooooo.','..oooo..'] },
+  { v:3, name:'普通', face:[
+    '..oooo..','.oooooo.','ooxooxoo','ooxooxoo','oooooooo','ooxxxxoo','.oooooo.','..oooo..'] },
+  { v:4, name:'開心', face:[
+    '..oooo..','.oooooo.','ooxooxoo','ooxooxoo','oooooooo','oxooooxo','.ooxxoo.','..oooo..'] },
+  { v:5, name:'超棒', face:[
+    '..oooo..','.oooooo.','ooxooxoo','ooxooxoo','oooooooo','oxooooxo','.oxxxxo.','..oooo..'] }
+];
+const LEVELS = [
+  { name:'新手', msg:'' },
+  { name:'暖身完成', msg:'運動滿 5 天了！好的開始就是成功的一半，你已經踏出最重要的一步，繼續加油！' },
+  { name:'節奏掌握', msg:'10 天達成！你的身體正在默默說謝謝。不用追求完美，穩穩地走就很棒了。' },
+  { name:'運動達人', msg:'15 天！這份毅力真的很了不起。只差一點點就滿等了，你一定做得到！' },
+  { name:'傳說級',   msg:'20 天滿等！這個月的你超級努力，為自己鼓掌吧！也別忘了好好休息喔。' }
+];
+const MAX_DAYS = 20, STEP = 5;
+const MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const WD = '日一二三四五六';
+const KEY = 'pixelFit.log.v1';
+const NAME_KEY = 'pixelFit.name';
+
+// 自訂運動可選的圖示（8x8）
+const ICONS = {
+  ball:  { label:'球類', rows:['..xxxx..','.x.xx.x.','x..xx..x','xxxxxxxx','xxxxxxxx','x..xx..x','.x.xx.x.','..xxxx..'] },
+  swim:  { label:'游泳', rows:['....xx..','...xxxx.','....xx..','.xxxxxxx','x.......','........','xx.xx.xx','.xx..xx.'] },
+  hike:  { label:'登山', rows:['........','...x....','..xxx...','.xxxxx.x','xxxxxxxx','xxxxxxxx','xxxxxxxx','........'] },
+  rope:  { label:'跳繩', rows:['.xxxxxx.','x......x','x..xx..x','x..xx..x','.x.xx.x.','..xxxx..','..x..x..','.xx..xx.'] },
+  music: { label:'舞蹈', rows:['...xxxx.','...x..x.','...x..x.','...x.xx.','.xxx.xx.','xxxx....','.xx.....','........'] },
+  glove: { label:'拳擊', rows:['..xxxx..','.xxxxxx.','xxxxxxxx','xxxxxxxx','xxxxxxxx','.xxxxxx.','..xxxx..','..xxxx..'] },
+  golf:  { label:'高爾夫', rows:['...xx...','...xxx..','...xxxx.','...xxx..','...x....','...x....','xxxxxxxx','........'] },
+  bat:   { label:'棒球', rows:['......xx','.....xxx','....xxx.','...xxx..','..xx....','.x...xx.','xx...xx.','........'] },
+  // 舊版用過的圖示：不再出現在選單，但已存的項目照常顯示
+  star:  { hidden:true, label:'星星', rows:['...xx...','...xx...','xxxxxxxx','.xxxxxx.','..xxxx..','..xxxx..','.xx..xx.','.x....x.'] },
+  heart: { hidden:true, label:'愛心', rows:['.xx..xx.','xxxxxxxx','xxxxxxxx','xxxxxxxx','.xxxxxx.','..xxxx..','...xx...','........'] }
+};
+const SPORTS_KEY = 'pixelFit.sports.v1';
+const MAX_CUSTOM = 12;
+let customSports = [];
+try {
+  const a = JSON.parse(localStorage.getItem(SPORTS_KEY));
+  if (Array.isArray(a)) customSports = a.filter(x => x && typeof x.id === 'string' && typeof x.name === 'string' && ICONS[x.icon])
+    .map(x => ({ id: x.id, name: Array.from(x.name).slice(0, 8).join(''), icon: x.icon, custom: true }));
+} catch(e){}
+const saveSports = () => { try { localStorage.setItem(SPORTS_KEY, JSON.stringify(customSports.map(({ id, name, icon }) => ({ id, name, icon })))); } catch(e){} };
+const allSports = () => [...SPORTS, ...customSports];
+const UNKNOWN_SPORT = { id:'?', name:'（已刪除的項目）', icon: ICONS.golf.rows };
+const sportOf = id => allSports().find(s => s.id === id) || UNKNOWN_SPORT;
+const iconRows = s => s.custom ? ICONS[s.icon].rows : s.icon;
+
+/* ================= 像素圖產生 ================= */
+function pix(rows, moodVal){
+  let r = '';
+  for (let y = 0; y < 8; y++){
+    for (let x = 0; x < 8; x++){
+      const ch = rows[y][x];
+      if (ch === 'x') r += `<rect class="${moodVal ? 'fk' : 'fx'}" x="${x}" y="${y}" width="1" height="1"/>`;
+      else if (ch === 'o') r += `<rect class="fo" x="${x}" y="${y}" width="1" height="1"/>`;
+    }
+  }
+  const st = moodVal ? ` style="--face:var(--m${moodVal})"` : '';
+  return `<svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"${st}>${r}</svg>`;
+}
+const sportSVG = id => pix(iconRows(sportOf(id)));
+const faceHTML = v => `<span class="face">${pix(MOODS[v-1].face, v)}</span>`;
+
+/* ================= 資料 ================= */
+function load(){
+  try { const d = JSON.parse(localStorage.getItem(KEY)); return (d && typeof d === 'object') ? d : {}; }
+  catch(e){ return {}; }
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){}
+}
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const cleanNote = t => Array.from(String(t || '').replace(/\s*[\r\n]+\s*/g, ' ').trim()).slice(0, 50).join('');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const dateKey = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+
+let data = load();
+const todayStr = () => { const n = new Date(); return dateKey(n.getFullYear(), n.getMonth(), n.getDate()); };
+let viewY = new Date().getFullYear(), viewM = new Date().getMonth();
+let selDate = null, selFuture = false, editingId = null, pickSport = null, pickMood = null;
+// 這個月可以記錄到幾號：過去的月份＝整月，本月＝到今天，未來的月份＝0
+function maxDayOf(y, m){
+  const [ty, tm, td] = todayStr().split('-').map(Number);
+  if (y > ty || (y === ty && m + 1 > tm)) return 0;
+  if (y === ty && m + 1 === tm) return td;
+  return new Date(y, m + 1, 0).getDate();
+}
+
+function monthKeys(y, m){
+  const p = `${y}-${pad(m + 1)}-`;
+  return Object.keys(data).filter(k => k.startsWith(p) && data[k] && data[k].length);
+}
+const activeDays = (y, m) => monthKeys(y, m).length;
+const levelOf = days => Math.min(4, Math.floor(Math.min(days, MAX_DAYS) / STEP));
+const fmtDur = min => {
+  const h = Math.floor(min / 60), m = min % 60;
+  return h > 0 ? `${h} 小時 ${m} 分` : `${m} 分`;
+};
+
+/* ================= 進度條 ================= */
+function buildBar(){
+  const bar = $('#bar');
+  for (let i = 0; i < MAX_DAYS; i++) bar.appendChild(document.createElement('i'));
+}
+function renderProgress(){
+  const days = activeDays(viewY, viewM);
+  const filled = Math.min(days, MAX_DAYS);
+  const lvl = levelOf(days);
+  $('#lvName').textContent = `LV.${lvl} ${LEVELS[lvl].name}`;
+  $('#dayCount').textContent = `${filled}/${MAX_DAYS} DAYS`;
+  $('#bar').setAttribute('aria-valuenow', filled);
+  [...$('#bar').children].forEach((el, i) => el.classList.toggle('on', i < filled));
+  $('#pgHint').textContent = lvl >= 4
+    ? '已達最高等級！這個月你太強了 ★'
+    : `本月已運動 ${days} 天，再運動 ${(lvl + 1) * STEP - filled} 天就能升級！`;
+}
+
+/* ================= 日曆 ================= */
+function renderCalendar(){
+  $('#monthEn').textContent = `${MON[viewM]} ${viewY}`;
+  $('#monthZh').textContent = `${viewY} 年 ${viewM + 1} 月`;
+  const grid = $('#calGrid');
+  grid.innerHTML = '';
+  const first = new Date(viewY, viewM, 1).getDay();
+  const total = new Date(viewY, viewM + 1, 0).getDate();
+  const tk = todayStr();
+  for (let i = 0; i < first; i++){
+    const b = document.createElement('div'); b.className = 'blank'; grid.appendChild(b);
+  }
+  for (let d = 1; d <= total; d++){
+    const key = dateKey(viewY, viewM, d);
+    const entries = data[key] || [];
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'day';
+    btn.dataset.key = key;
+    let label = `${viewM + 1} 月 ${d} 日`;
+    let icons = '', mixedNote = '';
+    if (entries.length){
+      const moods = [...new Set(entries.map(e => e.mood))];
+      btn.classList.add('has');
+      if (moods.length > 1){            // 同一天心情不同 → 「多種心情」色
+        btn.classList.add('mixed');
+        btn.style.setProperty('--mood', 'var(--m-mixed)');
+        mixedNote = '，心情不只一種';
+      } else btn.style.setProperty('--mood', `var(--m${moods[0]})`);
+      const uniq = [...new Set(entries.map(e => e.sport))];
+      icons = uniq.slice(0, 3).map(sportSVG).join('');
+      if (uniq.length > 3) icons += `<span class="more">+${uniq.length - 3}</span>`;
+      const mins = entries.reduce((s, e) => s + e.minutes, 0);
+      label += `，共 ${entries.length} 筆，${mins} 分鐘${mixedNote}`;
+    } else label += '，尚無紀錄';
+    if (key > tk){                       // 還沒到的日期：不能新增
+      btn.classList.add('future');
+      if (!entries.length){ btn.disabled = true; label += '（還沒到的日期，無法記錄）'; }
+    }
+    if (key === tk){ btn.classList.add('today'); label += '（今天）'; }
+    btn.setAttribute('aria-label', label);
+    btn.innerHTML = `<span class="dnum">${d}</span><span class="icons">${icons}</span>`;
+    grid.appendChild(btn);
+  }
+}
+
+/* ================= 統計 ================= */
+function renderStats(){
+  const sums = Object.fromEntries(allSports().map(s => [s.id, 0]));
+  let total = 0;
+  const keys = monthKeys(viewY, viewM);
+  keys.forEach(k => data[k].forEach(e => {
+    if (sums[e.sport] !== undefined){ sums[e.sport] += e.minutes; total += e.minutes; }
+  }));
+  $('#totalTime').textContent = fmtDur(total);
+  $('#totalSub').textContent = `運動 ${keys.length} 天，共 ${total} 分鐘`;
+  $('#noData').hidden = total > 0;
+  const rows = allSports().map(s => ({ s, min: sums[s.id] }))
+    .filter(r => !r.s.custom || r.min > 0)          // 自訂項目：有時間才顯示，避免列表太長
+    .sort((a, b) => b.min - a.min);
+  $('#sportStats').innerHTML = rows.map(({ s, min }) => {
+    const pct = total ? (min / total * 100) : 0;
+    return `<div class="srow${min ? '' : ' zero'}">
+      ${sportSVG(s.id)}
+      <div>
+        <div class="sline"><span>${esc(s.name)}</span><span>${min} MIN · ${Math.round(pct)}%</span></div>
+        <div class="sbar"><i style="width:${pct}%"></i></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll(){ renderProgress(); renderCalendar(); renderStats(); }
+
+/* ================= 記錄視窗 ================= */
+function buildSportPicks(){
+  $('#sportPick').innerHTML = allSports().map(s =>
+    `<button type="button" data-id="${esc(s.id)}" aria-pressed="false">${sportSVG(s.id)}<span>${esc(s.name)}</span></button>`).join('') +
+    `<button type="button" class="add" data-add="1" aria-label="新增或管理運動項目"><span class="plus">＋</span><span>新增項目</span></button>`;
+}
+function buildPicks(){
+  buildSportPicks();
+  $('#moodPick').innerHTML = MOODS.map(m =>
+    `<button type="button" data-v="${m.v}" aria-pressed="false">${faceHTML(m.v)}<span>${m.name}</span></button>`).join('');
+  $('#legend').innerHTML =
+    MOODS.map(m => `<span>${faceHTML(m.v)}${m.name}</span>`).join('') +
+    '<span><i class="sw"></i>多種心情</span>' +
+    '<span class="tip">日期格底色 = 當天心情；同一天心情不同時，顯示「多種心情」色。圖示 = 運動項目</span>';
+}
+function syncPicks(){
+  document.querySelectorAll('#sportPick button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.id === pickSport)));
+  document.querySelectorAll('#moodPick button').forEach(b =>
+    b.setAttribute('aria-pressed', String(Number(b.dataset.v) === pickMood)));
+}
+function updateNoteCount(){ $('#noteCount').textContent = `${$('#note').value.length}/50`; }
+function resetForm(){
+  editingId = null; pickSport = null; pickMood = null;
+  $('#minutes').value = '';
+  $('#note').value = ''; updateNoteCount();
+  $('#formMsg').textContent = '';
+  $('#submitBtn').textContent = '＋ ADD 新增';
+  $('#formTitle').textContent = 'NEW ENTRY 新增一筆';
+  $('#cancelEdit').hidden = true;
+  syncPicks();
+}
+function openDay(key){
+  selDate = key;
+  selFuture = key > todayStr();
+  $('#entryForm').hidden = selFuture;
+  $('#futureNote').hidden = !selFuture;
+  const [y, m, d] = key.split('-').map(Number);
+  const wd = WD[new Date(y, m - 1, d).getDay()];
+  $('#mTitle').textContent = `${y}/${pad(m)}/${pad(d)} 週${wd}`;
+  resetForm();
+  renderEntries();
+  $('#modal').hidden = false;
+  (selFuture ? $('#mClose') : $('#sportPick button')).focus();
+}
+function closeModal(){
+  $('#modal').hidden = true;
+  const key = selDate; selDate = null;
+  const el = key && document.querySelector(`.day[data-key="${key}"]`);
+  if (el) el.focus();
+}
+function renderEntries(){
+  const list = $('#entryList');
+  const items = data[selDate] || [];
+  if (!items.length){
+    list.innerHTML = '<li class="entry empty">這天還沒有紀錄</li>';
+    return;
+  }
+  list.innerHTML = items.map(e => `
+    <li class="entry${e.id === editingId ? ' editing' : ''}" data-id="${e.id}">
+      <span class="sp">${sportSVG(e.sport)}</span>
+      <span class="txt">${esc(sportOf(e.sport).name)} · ${e.minutes} 分</span>
+      ${faceHTML(e.mood)}
+      ${selFuture ? '' : '<button type="button" class="mini" data-act="edit" aria-label="編輯">編輯</button>'}
+      <button type="button" class="mini" data-act="del" aria-label="刪除">刪除</button>
+      ${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}
+    </li>`).join('');
+  list.querySelectorAll('.sp svg').forEach(s => s.classList.add('sp'));
+}
+function startEdit(id){
+  if (selFuture) return;
+  const it = (data[selDate] || []).find(e => e.id === id);
+  if (!it) return;
+  editingId = id; pickSport = it.sport; pickMood = it.mood;
+  $('#minutes').value = it.minutes;
+  $('#note').value = it.note || ''; updateNoteCount();
+  $('#formMsg').textContent = '';
+  $('#submitBtn').textContent = '✓ UPDATE 更新';
+  $('#formTitle').textContent = 'EDIT ENTRY 編輯這筆';
+  $('#cancelEdit').hidden = false;
+  syncPicks(); renderEntries();
+}
+function deleteEntry(id){
+  askConfirm('確定要刪除這筆紀錄嗎？', () => {
+    data[selDate] = (data[selDate] || []).filter(e => e.id !== id);
+    if (!data[selDate].length) delete data[selDate];
+    if (editingId === id) resetForm();
+    save(); renderAll(); renderEntries();
+  });
+}
+function submitForm(ev){
+  if (ev) ev.preventDefault();
+  const msg = t => { $('#formMsg').textContent = '！' + t; };
+  if (selFuture || selDate > todayStr()) return msg('還沒到的日期，不能新增紀錄');
+  const min = Math.round(Number($('#minutes').value));
+  if (!pickSport) return msg('請先選擇運動項目');
+  if (!(min >= 10 && min <= 180)) return msg('請輸入 10–180 之間的分鐘數');
+  if (!pickMood) return msg('請選擇這次運動後的心情');
+  const note = cleanNote($('#note').value);
+  const before = levelOf(activeDays(viewY, viewM));
+  const wasEditing = !!editingId;
+  if (wasEditing){
+    const it = (data[selDate] || []).find(e => e.id === editingId);
+    if (it){
+      it.sport = pickSport; it.minutes = min; it.mood = pickMood;
+      if (note) it.note = note; else delete it.note;
+    }
+  } else {
+    (data[selDate] = data[selDate] || []).push({ id: uid(), sport: pickSport, minutes: min, mood: pickMood, ...(note ? { note } : {}) });
+  }
+  save(); resetForm(); renderAll();
+  if (wasEditing){ renderEntries(); return; }   // 編輯完成：視窗維持開啟
+  closeModal();                                  // 新增完成：自動關閉視窗
+  const after = levelOf(activeDays(viewY, viewM));
+  if (after > before) showLevelUp(after);
+}
+
+/* ================= 自訂運動項目 ================= */
+let pickIcon = 'ball';
+function renderCustomList(){
+  $('#iconPick').innerHTML = Object.entries(ICONS).filter(([k, v]) => !v.hidden).map(([k, v]) =>
+    `<button type="button" data-icon="${k}" aria-pressed="${k === pickIcon}" aria-label="${v.label}">${pix(v.rows)}<span>${v.label}</span></button>`).join('');
+  $('#customList').innerHTML = customSports.length
+    ? customSports.map(s => `<li data-id="${esc(s.id)}"><span class="sp">${pix(ICONS[s.icon].rows)}</span><span class="txt">${esc(s.name)}</span><button type="button" class="mini" data-del="1" aria-label="刪除 ${esc(s.name)}">刪除</button></li>`).join('')
+    : '<li class="empty">還沒有新增過項目</li>';
+}
+function openSportDlg(){
+  pickIcon = 'ball'; $('#sportName').value = ''; $('#sportMsg').textContent = '';
+  renderCustomList();
+  $('#sportOverlay').hidden = false; $('#sportName').focus();
+}
+function closeSportDlg(){ $('#sportOverlay').hidden = true; const b = $('#sportPick button'); if (b) b.focus(); }
+function addSport(){
+  const name = Array.from($('#sportName').value.replace(/\s+/g, ' ').trim()).slice(0, 8).join('');
+  const msg = t => { $('#sportMsg').textContent = t; $('#sportName').focus(); };
+  if (!name) return msg('請先輸入運動名稱喔');
+  if (customSports.length >= MAX_CUSTOM) return msg(`最多只能新增 ${MAX_CUSTOM} 個項目，請先刪除不用的`);
+  if (allSports().some(s => s.name.toLowerCase() === name.toLowerCase())) return msg('這個名稱已經有了，換一個吧');
+  const item = { id: 'c' + uid(), name, icon: pickIcon, custom: true };
+  customSports.push(item); saveSports();
+  buildSportPicks();
+  if (!selFuture) pickSport = item.id;      // 新增完直接幫忙選好
+  syncPicks(); renderStats();
+  $('#sportOverlay').hidden = true;
+  const b = document.querySelector(`#sportPick button[data-id="${item.id}"]`); if (b) b.focus();
+}
+function deleteSport(id){
+  const s = customSports.find(x => x.id === id); if (!s) return;
+  const used = Object.values(data).some(arr => arr.some(e => e.sport === id));
+  if (used){ askInfo(`「${s.name}」已經有運動紀錄，無法刪除。要先刪掉那些紀錄才行。`); return; }
+  askConfirm(`確定要刪除運動項目「${s.name}」嗎？`, () => {
+    customSports = customSports.filter(x => x.id !== id); saveSports();
+    if (pickSport === id) pickSport = null;
+    buildSportPicks(); syncPicks(); renderCustomList(); renderStats();
+  });
+}
+
+/* ================= 確認視窗 ================= */
+let askYesFn = null;
+function askConfirm(text, onYes){
+  askYesFn = onYes;
+  $('#askMsg').textContent = text;
+  $('#askYes').hidden = false;
+  $('#askNo').textContent = 'NO 取消';
+  $('#askOverlay').hidden = false;
+  $('#askNo').focus();
+}
+function askInfo(text){                 // 只有一顆按鈕的提示視窗
+  askYesFn = null;
+  $('#askMsg').textContent = text;
+  $('#askYes').hidden = true;
+  $('#askNo').textContent = 'OK 知道了';
+  $('#askOverlay').hidden = false;
+  $('#askNo').focus();
+}
+function closeAsk(run){
+  const fn = askYesFn; askYesFn = null;
+  $('#askOverlay').hidden = true;
+  if (run && fn) fn();
+}
+
+/* ================= 使用者名稱 ================= */
+let userName = '';
+try { userName = (localStorage.getItem(NAME_KEY) || '').trim(); } catch(e){}
+function renderName(){ $('#nameBtn').textContent = userName || 'PLAYER'; document.title = userName ? `${userName} · 運動日誌` : '運動日誌'; }
+function openNameDialog(){
+  $('#nameInput').value = userName;
+  $('#nameMsg').textContent = '';
+  $('#nameCancel').hidden = !userName;          // 第一次一定要輸入；之後改名才可以取消
+  $('#nameOverlay').hidden = false;
+  $('#nameInput').focus(); $('#nameInput').select();
+}
+function submitName(){
+  const v = $('#nameInput').value.trim().replace(/\s+/g, ' ');
+  if (!v){ $('#nameMsg').textContent = '請先輸入名字喔'; $('#nameInput').focus(); return; }
+  userName = v.slice(0, 20);
+  try { localStorage.setItem(NAME_KEY, userName); } catch(e){}
+  $('#nameOverlay').hidden = true;
+  renderName();
+}
+function closeNameDialog(){ if (userName) $('#nameOverlay').hidden = true; }
+
+/* ================= 音效（用 Web Audio 即時合成，不需要任何音檔）================= */
+const SOUND_KEY = 'pixelFit.sound';
+let soundOn = true, audioCtx = null;
+try { soundOn = localStorage.getItem(SOUND_KEY) !== 'off'; } catch(e){}
+function getAudio(){
+  try {
+    if (!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  } catch(e){ return null; }
+}
+// 播一個音：頻率、開始時間、長度、波形、音量（開頭快速淡入、結尾淡出，避免爆音）
+function tone(ctx, freq, start, dur, type, vol){
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, start);
+  g.gain.setValueAtTime(0.0001, start);
+  g.gain.exponentialRampToValueAtTime(vol, start + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(start); o.stop(start + dur + 0.02);
+}
+// 晉級音效：8-bit 上行琶音，等級越高音越多（C5 E5 G5 C6 E6 G6 C7），最後一個音拉長並加低八度
+const FANFARE = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568.0, 2093.0];
+function playLevelUp(lvl){
+  if (!soundOn) return;
+  const ctx = getAudio(); if (!ctx) return;
+  const t0 = ctx.currentTime + 0.05, step = 0.085;
+  const notes = FANFARE.slice(0, Math.min(FANFARE.length, 3 + lvl));
+  notes.forEach((f, i) => {
+    const last = i === notes.length - 1;
+    tone(ctx, f, t0 + i * step, last ? 0.55 : 0.1, 'square', 0.12);
+    if (last) tone(ctx, f / 2, t0 + i * step, 0.55, 'triangle', 0.18);
+  });
+}
+function renderSound(){
+  const b = $('#soundBtn');
+  b.textContent = soundOn ? 'SOUND 音效：開' : 'SOUND 音效：關';
+  b.setAttribute('aria-pressed', String(soundOn));
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  try { localStorage.setItem(SOUND_KEY, soundOn ? 'on' : 'off'); } catch(e){}
+  renderSound();
+  if (soundOn){ const c = getAudio(); if (c) tone(c, 880, c.currentTime + 0.02, 0.09, 'square', 0.1); }   // 打開時「嗶」一聲確認
+}
+
+/* ================= 升級訊息（打字機效果＋像素小人）================= */
+// 12x13 像素：h 頭髮、r 蝴蝶結、s 皮膚、t 上衣、p 裙子、k 眼睛嘴巴鞋子。A＝站好，B＝開合跳（手舉高、腳打開）
+const HERO_A = [
+  '...hhhhrr...',
+  '..hhhhhhhh..',
+  '..hskssksh..',
+  '..hsskkssh..',
+  '..htttttth..',
+  '..htttttth..',
+  '.ssttttttss.',
+  '.ssttttttss.',
+  '...pppppp...',
+  '..pppppppp..',
+  '....ssss....',
+  '....ssss....',
+  '...kk..kk...'];
+const HERO_B = [
+  's..hhhhrr..s',
+  't.hhhhhhhh.t',
+  't.hskssksh.t',
+  't.hsskkssh.t',
+  'tthtttttthtt',
+  '.thttttttht.',
+  '...tttttt...',
+  '...tttttt...',
+  '...pppppp...',
+  '.pppppppppp.',
+  '..ss....ss..',
+  '.ss......ss.',
+  '.kk......kk.'];
+const STAR = ['..x..','.xxx.','xxxxx','.xxx.','..x..'];
+function spriteSVG(rows, cls, w, h, map){
+  let r = '';
+  rows.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (ch !== '.') r += `<rect${map ? ` class="${map[ch]}"` : ''} x="${x}" y="${y}" width="1" height="1"/>`;
+  }));
+  return `<svg class="${cls}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">${r}</svg>`;
+}
+function buildHero(){
+  const map = { h:'hh', r:'hr', s:'hs', t:'ht', p:'hp', k:'hk' };
+  $('#hero').innerHTML =
+    `<span class="hero-body">${spriteSVG(HERO_A, 'hf fa', 12, 13, map)}${spriteSVG(HERO_B, 'hf fb', 12, 13, map)}</span>` +
+    [1, 2, 3, 4].map(i => spriteSVG(STAR, `star s${i}`, 5, 5)).join('');
+}
+let typer = null, fullText = '';
+function finishTyping(){
+  clearInterval(typer);
+  $('#lvlText').textContent = fullText;
+  $('#lvlBox').classList.add('done');       // 小人加速、星星開始閃、▼ 出現
+}
+function showLevelUp(lvl){
+  fullText = LEVELS[lvl].msg;
+  $('#lvlTitle').textContent = `★ LEVEL UP!  LV.${lvl} ${LEVELS[lvl].name}`;
+  const el = $('#lvlText');
+  el.textContent = '';
+  $('#lvlBox').classList.remove('done');
+  playLevelUp(lvl);
+  document.querySelectorAll('#hero .star').forEach((st, i) => { st.style.display = i < Math.min(4, lvl) ? '' : 'none'; });  // 等級越高星星越多
+  $('#lvlOverlay').hidden = false;
+  let i = 0;
+  clearInterval(typer);
+  typer = setInterval(() => {
+    el.textContent = fullText.slice(0, ++i);
+    if (i >= fullText.length) finishTyping();
+  }, 45);
+  $('#lvlBox').focus();
+}
+function advanceLevelUp(){
+  if (!$('#lvlBox').classList.contains('done')) finishTyping();
+  else $('#lvlOverlay').hidden = true;
+}
+
+/* ================= 月份切換、範例資料 ================= */
+function shiftMonth(delta){
+  viewM += delta;
+  if (viewM < 0){ viewM = 11; viewY--; }
+  if (viewM > 11){ viewM = 0; viewY++; }
+  renderAll();
+}
+function clearMonth(y, m){ monthKeys(y, m).forEach(k => delete data[k]); }
+function loadSample(){
+  if (maxDayOf(viewY, viewM) === 0){ askInfo('這個月還沒到，不能載入範例。請切換到本月或過去的月份。'); return; }
+  if (activeDays(viewY, viewM) > 0) askConfirm('這個月已有紀錄，載入範例會覆蓋本月資料，確定嗎？', doSample);
+  else doSample();
+}
+function doSample(){
+  clearMonth(viewY, viewM);
+  const total = maxDayOf(viewY, viewM);     // 本月只產生「今天以前」的範例
+  const days = Array.from({ length: total }, (_, i) => i + 1)
+    .sort(() => Math.random() - 0.5).slice(0, Math.min(14, total));
+  const mins = [20, 30, 40, 45, 60, 90];
+  const NOTES = ['流了好多汗，超舒服！', '今天有點累，但還是完成了', '和朋友一起動，特別開心', '天氣很好，心情也跟著變好', '差點不想動，還是出門了'];
+  const pickRand = arr => arr[Math.floor(Math.random() * arr.length)];
+  days.forEach(d => {
+    const n = Math.random() < 0.3 ? 2 : 1;
+    const arr = [];
+    for (let i = 0; i < n; i++){
+      arr.push({ id: uid(), sport: pickRand(SPORTS).id, minutes: pickRand(mins), mood: pickRand([2, 3, 3, 4, 4, 5, 5]),
+                ...(Math.random() < 0.5 ? { note: pickRand(NOTES) } : {}) });
+    }
+    data[dateKey(viewY, viewM, d)] = arr;
+  });
+  save(); renderAll();
+}
+function clearThisMonth(){
+  if (!activeDays(viewY, viewM)) return;
+  askConfirm(`確定要清空 ${viewY} 年 ${viewM + 1} 月的所有紀錄嗎？`, () => {
+    clearMonth(viewY, viewM); save(); renderAll();
+  });
+}
+
+/* ================= 事件 ================= */
+function init(){
+  if ($('#soundBtn').hidden) soundOn = true;   // 開關按鈕隱藏時，音效一律開啟（避免之前存的「關」讓人沒辦法再打開）
+  buildBar(); buildPicks(); buildHero(); resetForm(); renderAll(); renderSound();
+  renderName();
+  $('#nameBtn').addEventListener('click', openNameDialog);
+  $('#nameOk').addEventListener('click', submitName);
+  $('#nameCancel').addEventListener('click', closeNameDialog);
+  $('#nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitName(); });
+  if (!userName) openNameDialog();
+
+  $('#prevM').addEventListener('click', () => shiftMonth(-1));
+  $('#nextM').addEventListener('click', () => shiftMonth(1));
+  $('#todayBtn').addEventListener('click', () => { const n = new Date(); viewY = n.getFullYear(); viewM = n.getMonth(); renderAll(); });
+  $('#demoBtn').addEventListener('click', loadSample);
+  $('#clearBtn').addEventListener('click', clearThisMonth);
+  $('#soundBtn').addEventListener('click', toggleSound);
+
+  $('#calGrid').addEventListener('click', e => {
+    const b = e.target.closest('.day'); if (b) openDay(b.dataset.key);
+  });
+  $('#mClose').addEventListener('click', closeModal);
+  $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+  $('#sportPick').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.add){ openSportDlg(); return; }
+    pickSport = b.dataset.id; syncPicks();
+  });
+  $('#iconPick').addEventListener('click', e => {
+    const b = e.target.closest('button[data-icon]'); if (!b) return;
+    pickIcon = b.dataset.icon;
+    document.querySelectorAll('#iconPick button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.icon === pickIcon)));
+  });
+  $('#customList').addEventListener('click', e => {
+    const b = e.target.closest('button[data-del]'); if (!b) return;
+    deleteSport(b.closest('li').dataset.id);
+  });
+  $('#sportAdd').addEventListener('click', addSport);
+  $('#sportName').addEventListener('keydown', e => { if (e.key === 'Enter') addSport(); });
+  $('#sportClose').addEventListener('click', closeSportDlg);
+  $('#sportOverlay').addEventListener('click', e => { if (e.target.id === 'sportOverlay') closeSportDlg(); });
+  $('#moodPick').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    pickMood = Number(b.dataset.v); syncPicks();
+  });
+  $('#entryList').addEventListener('click', e => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    const id = b.closest('.entry').dataset.id;
+    if (b.dataset.act === 'edit') startEdit(id); else deleteEntry(id);
+  });
+  $('#submitBtn').addEventListener('click', submitForm);
+  $('#minutes').addEventListener('keydown', e => { if (e.key === 'Enter') submitForm(e); });
+  $('#note').addEventListener('input', updateNoteCount);
+  $('#note').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });   // 留言只有一行，不換行
+  $('#askYes').addEventListener('click', () => closeAsk(true));
+  $('#askNo').addEventListener('click', () => closeAsk(false));
+  $('#cancelEdit').addEventListener('click', () => { resetForm(); renderEntries(); });
+  $('#lvlBox').addEventListener('click', advanceLevelUp);
+  $('#lvlOverlay').addEventListener('click', e => { if (e.target.id === 'lvlOverlay') advanceLevelUp(); });
+
+  document.addEventListener('keydown', e => {
+    if (!$('#nameOverlay').hidden){
+      if (e.key === 'Escape') closeNameDialog();
+      return;
+    }
+    if (!$('#askOverlay').hidden){
+      if (e.key === 'Escape') closeAsk(false);
+      return;
+    }
+    if (!$('#sportOverlay').hidden){
+      if (e.key === 'Escape') closeSportDlg();
+      return;
+    }
+    if (!$('#lvlOverlay').hidden){
+      if (e.key === 'Escape'){ clearInterval(typer); $('#lvlOverlay').hidden = true; }
+      return;
+    }
+    if (!$('#modal').hidden){
+      if (e.key === 'Escape') closeModal();
+      return;
+    }
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowLeft') shiftMonth(-1);
+    if (e.key === 'ArrowRight') shiftMonth(1);
+  });
+}
+init();
+})();
+</script>
+</body>
+</html>
